@@ -45,13 +45,51 @@ def Training(request):
     BATCH_SIZE = 32
     IMAGE_SIZE = (224, 224)
 
-    train_generator = ImageDataGenerator(preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input, validation_split=0.2)
-    test_generator = ImageDataGenerator(preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input)
+    # Enhanced Data Augmentation for better generalization
+    train_generator = ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input,
+        validation_split=0.2,
+        rotation_range=30,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='nearest'
+    )
+    
+    # Validation generator should NOT have augmentation except preprocessing
+    val_generator = ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input,
+        validation_split=0.2
+    )
+
+    test_generator = ImageDataGenerator(
+        preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input
+    )
 
     # Flow images from directory
-    train_images = train_generator.flow_from_directory(dataset_path, target_size=IMAGE_SIZE, batch_size=BATCH_SIZE, class_mode='categorical', subset='training')
-    val_images = train_generator.flow_from_directory(dataset_path, target_size=IMAGE_SIZE, batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
-    test_images = test_generator.flow_from_directory(dataset_path, target_size=IMAGE_SIZE, batch_size=BATCH_SIZE, class_mode='categorical', shuffle=False)
+    train_images = train_generator.flow_from_directory(
+        dataset_path, 
+        target_size=IMAGE_SIZE, 
+        batch_size=BATCH_SIZE, 
+        class_mode='categorical', 
+        subset='training'
+    )
+    val_images = val_generator.flow_from_directory(
+        dataset_path, 
+        target_size=IMAGE_SIZE, 
+        batch_size=BATCH_SIZE, 
+        class_mode='categorical', 
+        subset='validation'
+    )
+    test_images = test_generator.flow_from_directory(
+        dataset_path, 
+        target_size=IMAGE_SIZE, 
+        batch_size=BATCH_SIZE, 
+        class_mode='categorical', 
+        shuffle=False
+    )
 
     # Load or build the model
     if os.path.exists(model_path):
@@ -71,7 +109,8 @@ def Training(request):
     early_stopping = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
 
     # Training the model
-    history = model.fit(train_images, epochs=5, validation_data=val_images, callbacks=[checkpoint_callback, early_stopping])
+    # Increased epochs to 20 for better learning with augmented data
+    history = model.fit(train_images, epochs=20, validation_data=val_images, callbacks=[checkpoint_callback, early_stopping])
     model.save(model_path)
 
     # Evaluate on test data
@@ -357,9 +396,11 @@ def prediction(request):
         class_indices = train_generator.class_indices
         class_names   = {v: k for k, v in class_indices.items()}
 
+        from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
         img       = load_img(img_full_path, target_size=(img_height, img_width))
-        img_array = img_to_array(img) / 255.0
+        img_array = img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
 
         predictions       = model.predict(img_array)
         predicted_index    = np.argmax(predictions, axis=1)[0]
