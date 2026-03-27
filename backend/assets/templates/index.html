@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block contents %} 
+{% load static %}
+
+    <style>
+        body {
+            display: flex;
+            {% comment %} justify-content: center; {% endcomment %}
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: url("{% static 'image.jpg' %}"); /* Specific background for index page */
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        .container {
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent overlay */
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #FFA500; /* Orange for title */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Shadow for text */
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: scale(1.05); /* Slightly grow button on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Classification of Reptiles and Amphibians  </h1>
+        <p>Explore our tool to classify Reptiles and Amphibians . Use the login options to get started or create a new account if you're new here.</p>
+        <a href="{% url 'UserRegisterForm' %}" class="btn btn-primary">Get Started</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+
+
+{% endblock %} 

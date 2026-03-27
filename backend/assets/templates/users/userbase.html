@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classfication of Reptiles and Amphibians</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Page Background */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background-color: #F2F2F2;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation Bar Styling */
+        nav {
+            background-color: #000000;
+            width: 100%;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+
+        nav ul li {
+            margin: 0;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #FFFFFF;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            font-size: 1rem;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: block;
+            text-align: center;
+        }
+
+        /* Hover and Active Effects */
+        nav ul li a:hover, nav ul li a.active {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Main Content Section */
+        main-content {
+            margin-left: 0;
+            flex: 1;
+            padding: 40px;
+            display: block;
+        }
+
+        /* Header Styling */
+        header {
+            background: rgba(213, 0, 109, 0.9);
+            color: #fff;
+            padding: 0px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Footer Styling */
+        footer {
+            background-color: rgba(44, 62, 80, 0.9);
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar (Navigation Bar) -->
+    <nav>
+        <ul>
+            <li><a href="{% url 'UserHome' %}" class="{% if request.path == '/UserHome/' %}active{% endif %}">Home</a>
+            </li>
+            {% comment %} <li><a href="{% url 'ViewDataset' %}"
+                    class="{% if request.path == '/ViewDataset/' %}active{% endif %}">Dataset</a></li> {% endcomment %}
+
+            <li><a href="{% url 'prediction' %}"
+                    class="{% if request.path == '/prediction/' %}active{% endif %}">Analysis</a></li>
+            <li><a href="{% url 'index' %}" class="{% if request.path == '/index/' %}active{% endif %}">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Section -->
+
+
+
+    {% block contents %}
+    <!-- Your content will go here -->
+    {% endblock %}
+
+    {% comment %}
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; Amphibians and Reptiles Classification. All rights reserved.</p>
+    </footer> {% endcomment %}
+</body>
+
+</html>

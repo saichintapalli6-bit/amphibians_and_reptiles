@@ -1,0 +1,2 @@
+model_checkpoint_path: "animals_classification_model_checkpoint"
+all_model_checkpoint_paths: "animals_classification_model_checkpoint"

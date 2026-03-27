@@ -1,0 +1,299 @@
+{% extends 'users/userbase.html' %}
+{% load static %}
+
+{% block contents %}
+<!-- Content for the Amphibian and Reptile Detection Page -->
+<style>
+    body {
+        margin: 0;
+        color: #333;
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        position: relative;
+    }
+
+
+    .content-container {
+        text-align: center;
+        background: #FFFFFF;
+        padding: 40px;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 700px;
+        margin: 40px auto;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+        color: #000;
+        margin-bottom: 20px;
+    }
+
+    form {
+        margin-bottom: 20px;
+    }
+
+    label {
+        color: #333;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    /* Hide real file input */
+    input[type="file"] {
+        display: none;
+    }
+
+    /* Custom file bar */
+    .custom-file-bar {
+        display: flex;
+        align-items: center;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 14px;
+        cursor: pointer;
+        width: 100%;
+        max-width: 350px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .custom-file-btn {
+        padding: 9px 14px;
+        background-color: #eeeeee;
+        border-right: 1px solid #ddd;
+        font-size: 0.9rem;
+        color: #333;
+        white-space: nowrap;
+        user-select: none;
+        flex-shrink: 0;
+    }
+
+    .file-name-display {
+        padding: 9px 12px;
+        font-size: 0.85rem;
+        color: #666;
+        font-style: italic;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        background-color: #000;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background-color: #333;
+    }
+
+    h2 {
+        margin-top: 20px;
+        color: #000;
+    }
+
+    img {
+        margin-top: 20px;
+        max-width: 300px;
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Result card styles */
+    .result-card {
+        margin-top: 20px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: left;
+    }
+
+    .result-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        margin-bottom: 12px;
+        background: #ffffff;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        font-size: 1.1rem;
+    }
+
+    .result-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .result-label {
+        color: #666666;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+    }
+
+    .result-value {
+        color: #000000;
+        font-size: 1.15rem;
+        font-weight: bold;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    .badge-reptile {
+        background-color: #2e7d32;
+        /* dark green */
+    }
+
+    .badge-amphibian {
+        background-color: #1565c0;
+        /* dark blue */
+    }
+
+    .badge-unknown {
+        background-color: #555555;
+    }
+
+    .invalid-card {
+        margin-top: 20px;
+        background: rgba(200, 30, 30, 0.25);
+        border: 2px solid rgba(255, 80, 80, 0.7);
+        border-radius: 10px;
+        padding: 24px 20px;
+        text-align: center;
+    }
+
+    .invalid-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .invalid-title {
+        color: #ff6b6b;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .invalid-desc {
+        color: #ffcccc;
+        font-size: 1rem;
+    }
+</style>
+
+
+<div class="content-container">
+    <h1>Amphibians and Reptile Detection</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="image">Upload Image:</label>
+        <input type="file" id="image" name="image" accept="image/*" required>
+        <div class="custom-file-bar" onclick="document.getElementById('image').click()">
+            <span class="custom-file-btn">Choose File</span>
+            <span class="file-name-display" id="file-name-display">No file chosen</span>
+        </div>
+        <button type="submit">Predict</button>
+    </form>
+
+    <script>
+        document.getElementById('image').addEventListener('change', function () {
+            var display = document.getElementById('file-name-display');
+            display.textContent = this.files.length > 0 ? this.files[0].name : 'No file chosen';
+        });
+    </script>
+
+    {% if is_invalid %}
+    <div class="invalid-card">
+        <div class="invalid-icon">🚫</div>
+        <div class="invalid-title">Invalid Image</div>
+        <div class="invalid-desc">This is not a Reptile or Amphibian.<br>Please upload a valid reptile or amphibian
+            image.</div>
+    </div>
+    {% if image_url %}
+    <br>
+    <h3>Uploaded Image:</h3>
+    <img src="{{ image_url }}" alt="Uploaded Image">
+    {% endif %}
+    {% elif animal_name %}
+    <div class="result-card">
+        <div class="result-row">
+            <span class="result-label">🐾 Animal</span>
+            <span class="result-value">{{ animal_name }}</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">🏷️ Category</span>
+            <span class="result-value">
+                {% if category == 'Reptile' %}
+                <span class="badge badge-reptile">🦎 Reptile</span>
+                {% elif category == 'Amphibian' %}
+                <span class="badge badge-amphibian">🐸 Amphibian</span>
+                {% else %}
+                <span class="badge badge-unknown">Unknown</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">📊 Accuracy</span>
+            <span class="result-value" style="color: #FFD700;">{{ confidence_pct }}</span>
+        </div>
+    </div>
+
+    <br>
+    <h3>Uploaded Image:</h3>
+    <img src="{{ image_url }}" alt="Uploaded Image">
+    {% endif %}
+</div>
+
+<!-- Script to generate scattered dots in background -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const numDots = 80;
+        const container = document.body;
+        for (let i = 0; i < numDots; i++) {
+            const dot = document.createElement('div');
+            dot.style.position = 'fixed';
+            
+            // Random size between 3px and 6px
+            const size = Math.random() * 3 + 3;
+            dot.style.width = size + 'px';
+            dot.style.height = size + 'px';
+            
+            dot.style.backgroundColor = 'rgba(150, 150, 150, 0.4)';
+            dot.style.borderRadius = '50%';
+            dot.style.zIndex = '-1';
+            
+            dot.style.left = Math.random() * 100 + 'vw';
+            dot.style.top = Math.random() * 100 + 'vh';
+            
+            container.appendChild(dot);
+        }
+    });
+</script>
+
+{% endblock %}

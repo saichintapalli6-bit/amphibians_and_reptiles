@@ -1,0 +1,162 @@
+{% extends 'users/userbase.html' %}
+{% load static %}
+
+{% block contents %}
+<!-- Model Training Results Page -->
+
+<style>
+    /* General page styling */
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-image: url("{% static 'image.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        margin: 0;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    /* Main content container */
+    .content-container {
+        background: rgba(0, 0, 0, 0.85);
+        padding: 30px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        color: #eee;
+    }
+
+    /* Card styling */
+    .card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+
+    .card h2 {
+        margin-top: 0;
+        font-size: 1.3rem;
+        color: #ffd700;
+    }
+
+    /* Table styling for the classification report */
+    .classification-table {
+        width: 100%;
+        margin-top: 10px;
+        color: #ddd;
+        border-collapse: collapse;
+    }
+
+    .classification-table th, .classification-table td {
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    .classification-table th {
+        font-weight: bold;
+        color: #ffd700;
+        font-size: 1.1rem;
+    }
+
+    .classification-table td {
+        color: #eee;
+    }
+
+    /* Button styling */
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        background-color: #8e24aa;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    button:hover {
+        background-color: #6a1b9a;
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="content-container">
+    <h1 style="text-align: center; color: #ffd700;">Model Training Results</h1>
+
+    {% if message %}
+        <p style="color:yellow; text-align: center;">{{ message }}</p>
+
+    {% else %}
+        <!-- Overall Accuracy Card -->
+        <div class="card">
+            <h2>Overall Accuracy</h2>
+            <p><strong>Accuracy:</strong> {{ accuracy|floatformat:2 }}%</p>
+        </div>
+
+        <!-- Classification Report Card with Table Layout -->
+        <div class="card">
+            <h2>Classification Report</h2>
+            <table class="classification-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>Support</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_list %}
+                    <tr>
+                        <td>{{ row.label }}</td>
+                        <td>{{ row.precision|floatformat:2 }}</td>
+                        <td>{{ row.recall|floatformat:2 }}</td>
+                        <td>{{ row.f1_score|floatformat:2 }}</td>
+                        <td>{{ row.support }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Confusion Matrix Card -->
+        <div class="card">
+            <h2>Confusion Matrix</h2>
+            <img src="data:image/png;base64,{{ conf_matrix_image }}" alt="Confusion Matrix" style="width:100%; border-radius: 5px;">
+        </div>
+
+        <!-- Training and Validation Accuracy Card -->
+        <div class="card">
+            <h2>Training and Validation Accuracy</h2>
+            <img src="data:image/png;base64,{{ accuracy_image }}" alt="Training and Validation Accuracy" style="width:100%; border-radius: 5px;">
+        </div>
+
+        <!-- Training and Validation Loss Card -->
+        <div class="card">
+            <h2>Training and Validation Loss</h2>
+            <img src="data:image/png;base64,{{ loss_image }}" alt="Training and Validation Loss" style="width:100%; border-radius: 5px;">
+        </div>
+
+        <!-- Centered Retrain Button -->
+
+    {% endif %}
+</div>
+
+{% endblock %}
