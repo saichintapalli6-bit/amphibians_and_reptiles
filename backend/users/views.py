@@ -49,16 +49,18 @@ def Training(request):
     train_generator = ImageDataGenerator(
         preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input,
         validation_split=0.2,
-        rotation_range=30,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
+        rotation_range=40,      # Increased for better angles
+        width_shift_range=0.3,
+        height_shift_range=0.3,
+        shear_range=0.3,
+        zoom_range=0.3,         # Better for zoomed-in photos
         horizontal_flip=True,
+        vertical_flip=True,     # Amphibians/Reptiles can be upside down in photos
+        brightness_range=[0.7, 1.3], # Handle different lighting
         fill_mode='nearest'
     )
     
-    # Validation generator should NOT have augmentation except preprocessing
+    # Validation generator should ONLY have preprocessing
     val_generator = ImageDataGenerator(
         preprocessing_function=tf.keras.applications.mobilenet_v2.preprocess_input,
         validation_split=0.2
@@ -93,24 +95,31 @@ def Training(request):
 
     # Load or build the model
     if os.path.exists(model_path):
-        model = load_model(model_path)
+        # We load weights but re-compile to use updated optimizer/parameters
+        model = load_model(model_path, compile=False)
     else:
         pretrained_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet', pooling='avg')
-        pretrained_model.trainable = False
-        x = Dense(256, activation='relu')(pretrained_model.output)
+        # We fine-tune the last few layers for better "outside" image recognition
+        pretrained_model.trainable = True
+        for layer in pretrained_model.layers[:-20]:
+            layer.trainable = False
+            
+        x = Dense(512, activation='relu')(pretrained_model.output)
+        x = Dropout(0.4)(x) # Higher dropout to prevent overfitting to dataset
+        x = Dense(256, activation='relu')(x)
         x = Dropout(0.2)(x)
         outputs = Dense(train_images.num_classes, activation='softmax')(x)
         model = Model(inputs=pretrained_model.input, outputs=outputs)
 
-    model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 
     # Callbacks
     checkpoint_callback = ModelCheckpoint(checkpoint_path, save_weights_only=True, monitor='val_accuracy', save_best_only=True)
-    early_stopping = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor="val_loss", patience=8, restore_best_weights=True)
 
     # Training the model
-    # Increased epochs to 20 for better learning with augmented data
-    history = model.fit(train_images, epochs=20, validation_data=val_images, callbacks=[checkpoint_callback, early_stopping])
+    # Higher epochs (25) + smaller learning rate for precision
+    history = model.fit(train_images, epochs=25, validation_data=val_images, callbacks=[checkpoint_callback, early_stopping])
     model.save(model_path)
 
     # Evaluate on test data
