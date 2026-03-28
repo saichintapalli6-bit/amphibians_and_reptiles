@@ -12,7 +12,7 @@ export const BASE_URL = RENDER_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  timeout: 60000, // 60 seconds for heavy ml predictions
   headers: {
     'Content-Type': 'application/json',
     'Accept':       'application/json',

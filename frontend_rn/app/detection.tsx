@@ -82,8 +82,11 @@ export default function DetectionScreen() {
         webAlert('Server Error (500)', 'Backend crashed!\n\nPlease check Django terminal for error details.\n\n' + serverMsg);
       } else if (err?.code === 'ERR_NETWORK' || err?.message?.includes('Network')) {
         webAlert('Connection Error', 'Cannot reach backend.\n\n• Is Django running? (localhost:8000)\n• Check CORS settings');
+      } else if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        webAlert('Timeout Error', 'The prediction took too long. The Render server might be asleep or processing. Try again in a minute!');
       } else {
-        webAlert('Error', serverMsg || 'Prediction failed. Check Django terminal.');
+        const fallBackMsg = err.message || 'Prediction failed. Check Django terminal.';
+        webAlert('Error', serverMsg || fallBackMsg);
       }
     } finally {
       setLoading(false);
