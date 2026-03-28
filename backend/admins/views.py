@@ -19,18 +19,26 @@ def AdminLoginCheck(request):
                 usrid = request.POST.get('loginid')
                 pswd = request.POST.get('pswd')
 
-            print("User ID is = ", usrid)
+            print(f"Admin Login Attempt: ID={usrid}, Pswd={pswd}")
+
             if usrid == 'admin' and pswd == 'admin':
+                print("Admin Login SUCCESSFUL")
                 if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
                     return JsonResponse({'status': 'success', 'message': 'Admin Login Successful'})
                 return render(request, 'admins/AdminHome.html')
             else:
+                print("Admin Login FAILED: Invalid credentials")
+                msg = 'Please Check Your Login Details'
                 if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                    return JsonResponse({'status': 'error', 'message': 'Please Check Your Login Details'}, status=401)
-                messages.error(request, 'Please Check Your Login Details')
+                    return JsonResponse({'status': 'error', 'message': msg}, status=401)
+                messages.error(request, msg)
         except Exception as e:
+            error_msg = f"ADMIN LOGIN ERROR: {str(e)}"
+            print(error_msg)
             if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+                return JsonResponse({'status': 'error', 'message': error_msg}, status=500)
+            messages.error(request, error_msg)
+            
     return render(request, 'AdminLogin.html', {})
 
 

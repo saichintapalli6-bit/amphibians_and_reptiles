@@ -339,117 +339,113 @@ def is_reptile_or_amphibian_imagenet(img_full_path):
 def prediction(request):
     import numpy as np
     from tensorflow.keras.models import load_model
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
+    from tensorflow.keras.preprocessing.image import load_img, img_to_array
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+    
+    # ── HELPERS: Cache model & hardcode class names ──────────────────────
+    # Folder names sorted alphabetically: 
+    CLASS_NAMES = [
+        'Chameleon', 'Crocodile_Alligator', 'Frog', 'Gecko', 'Iguana',
+        'Lizard', 'Salamander', 'Snake', 'Toad', 'Turtle_Tortoise'
+    ]
+    
     image_url, animal_name, category, confidence_pct = None, None, None, None
 
     if request.method == 'POST' and request.FILES.get('image'):
-        model_path = os.path.join(settings.BASE_DIR, 'animal_classification_model.h5')
+        try:
+            model_path = os.path.join(settings.BASE_DIR, 'animal_classification_model.h5')
 
-        if not os.path.exists(model_path):
-            return render(request, 'users/detection.html', {'result': "Model not trained. Please train first."})
+            if not os.path.exists(model_path):
+                msg = "Model file not found. Please train first."
+                if 'application/json' in request.headers.get('Accept', ''):
+                    return JsonResponse({'status': 'error', 'message': msg}, status=400)
+                return render(request, 'users/detection.html', {'result': msg})
 
-        img_file  = request.FILES['image']
-        img_path  = default_storage.save('temp_image.jpg', img_file)
-        img_full_path = os.path.join(settings.MEDIA_ROOT, img_path)
-        image_url = os.path.join(settings.MEDIA_URL, img_path)
+            img_file = request.FILES['image']
+            img_path = default_storage.save('temp_image.jpg', img_file)
+            img_full_path = os.path.join(settings.MEDIA_ROOT, img_path)
+            image_url = os.path.join(settings.MEDIA_URL, img_path)
 
-        # ── STEP 1: Pre-filter with ImageNet MobileNetV2 ──────────────────
-        # Reject the image immediately if ImageNet does NOT recognise it as
-        # a reptile or amphibian (sky, dog, car, food, etc. are all blocked).
-        if not is_reptile_or_amphibian_imagenet(img_full_path):
+            # ── STEP 1: Pre-filter with ImageNet MobileNetV2 ──────────────────
+            if not is_reptile_or_amphibian_imagenet(img_full_path):
+                msg = 'Invalid Image: This is not a Reptile or Amphibian.'
+                if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
+                    return JsonResponse({
+                        'status': 'error', 'message': msg, 'is_invalid': True,
+                        'image_url': request.build_absolute_uri(image_url)
+                    })
+                return render(request, 'users/detection.html', {'is_invalid': True, 'image_url': image_url})
+
+            # ── STEP 2: Species classification with the custom model ───────────
+            # Caching the model to avoid OOM / Timeouts on every request
+            if not hasattr(prediction, '_model'):
+                from tensorflow.keras.layers import DepthwiseConv2D
+                class FixedDepthwiseConv2D(DepthwiseConv2D):
+                    def __init__(self, **kwargs):
+                        kwargs.pop('groups', None)
+                        super().__init__(**kwargs)
+                
+                prediction._model = load_model(
+                    model_path, compile=False,
+                    custom_objects={'DepthwiseConv2D': FixedDepthwiseConv2D}
+                )
+            model = prediction._model
+
+            # Image Preprocessing
+            img = load_img(img_full_path, target_size=(224, 224))
+            img_array = img_to_array(img)
+            img_array = np.expand_dims(img_array, axis=0)
+            img_array = preprocess_input(img_array)
+
+            # Prediction
+            preds = model.predict(img_array, verbose=0)
+            idx = np.argmax(preds, axis=1)[0]
+            confidence = float(preds[0][idx])
+            
+            # Map index to class name
+            if idx < len(CLASS_NAMES):
+                predicted_class_name = CLASS_NAMES[idx]
+            else:
+                predicted_class_name = "Unknown"
+
+            category = get_category(predicted_class_name)
+
+            if category == 'Unknown':
+                msg = 'Invalid species: Category is Unknown.'
+                if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
+                    return JsonResponse({
+                        'status': 'error', 'message': msg, 'is_invalid': True,
+                        'image_url': request.build_absolute_uri(image_url)
+                    })
+                return render(request, 'users/detection.html', {'is_invalid': True, 'image_url': image_url})
+
+            # Formatting result
+            raw_name = predicted_class_name.replace('_', ' ').replace('-', ' ')
+            animal_name = ' '.join(word.capitalize() for word in raw_name.split())
+            confidence_pct = f"{confidence * 100:.2f}%"
+
             if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
                 return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid Image: This is not a Reptile or Amphibian.',
-                    'is_invalid': True,
-                    'image_url': request.build_absolute_uri(image_url) if image_url else None
+                    'animal_name': animal_name,
+                    'category': category,
+                    'confidence_pct': confidence_pct,
+                    'image_url': request.build_absolute_uri(image_url),
+                    'status': 'success'
                 })
+
             return render(request, 'users/detection.html', {
-                'is_invalid': True,
-                'image_url': image_url,
+                'animal_name': animal_name, 'category': category,
+                'confidence_pct': confidence_pct, 'image_url': image_url,
             })
 
-        # ── STEP 2: Species classification with the custom model ───────────
-        # Fix: newer TF versions don't support 'groups' param in DepthwiseConv2D
-        # that was saved in older model files.
-        from tensorflow.keras.layers import DepthwiseConv2D
-
-        class FixedDepthwiseConv2D(DepthwiseConv2D):
-            def __init__(self, **kwargs):
-                kwargs.pop('groups', None)   # remove unsupported param
-                super().__init__(**kwargs)
-
-        model = load_model(
-            model_path,
-            compile=False,
-            custom_objects={'DepthwiseConv2D': FixedDepthwiseConv2D}
-        )
-
-        dataset_path   = 'media/archive'
-        img_height, img_width = 224, 224
-
-        train_datagen  = ImageDataGenerator(rescale=1.0/255)
-        train_generator = train_datagen.flow_from_directory(
-            dataset_path, target_size=(img_height, img_width),
-            batch_size=32, class_mode='binary'
-        )
-        class_indices = train_generator.class_indices
-        class_names   = {v: k for k, v in class_indices.items()}
-
-        from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-        img       = load_img(img_full_path, target_size=(img_height, img_width))
-        img_array = img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array = preprocess_input(img_array)
-
-        predictions       = model.predict(img_array)
-        predicted_index    = np.argmax(predictions, axis=1)[0]
-        predicted_class_name = class_names[predicted_index]
-        confidence         = predictions[0][predicted_index]
-
-        category = get_category(predicted_class_name)
-
-        # Extra safety net: if custom model output still doesn't map → Invalid
-        if category == 'Unknown':
+        except Exception as e:
+            msg = f"Prediction Error: {str(e)}"
+            print(f"ERROR: {msg}") # Will show in Django terminal
             if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid Image: Category is Unknown.',
-                    'is_invalid': True,
-                    'image_url': request.build_absolute_uri(image_url) if image_url else None
-                })
-            return render(request, 'users/detection.html', {
-                'is_invalid': True,
-                'image_url': image_url,
-            })
+                return JsonResponse({'status': 'error', 'message': msg}, status=500)
+            return render(request, 'users/detection.html', {'result': msg})
 
-        # Clean up name: "banded_gecko" → "Banded Gecko"
-        raw_name    = predicted_class_name.replace('_', ' ').replace('-', ' ')
-        animal_name = ' '.join(word.capitalize() for word in raw_name.split())
-        confidence_pct = f"{confidence * 100:.2f}%"
-
-        if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-            return JsonResponse({
-                'animal_name': animal_name,
-                'category': category,
-                'confidence_pct': confidence_pct,
-                'image_url': request.build_absolute_uri(image_url),
-                'status': 'success'
-            })
-
-        return render(request, 'users/detection.html', {
-            'animal_name': animal_name,
-            'category': category,
-            'confidence_pct': confidence_pct,
-            'image_url': image_url,
-        })
-
-    return render(request, 'users/detection.html', {
-        'animal_name': animal_name,
-        'category': category,
-        'confidence_pct': confidence_pct,
-        'image_url': image_url,
-    })
+    return render(request, 'users/detection.html', {})
 
 
 
@@ -513,35 +509,49 @@ def UserLoginCheck(request):
                 loginid = request.POST.get('loginid')
                 pswd = request.POST.get('pswd')
             
-            print("Login ID = ", loginid, ' Password = ', pswd)
-            check = UserRegistrationModel.objects.get(loginid=loginid, password=pswd)
-            status = check.status
-            print('Status is = ', status)
-            if status == "activated":
-                request.session['id'] = check.id
-                request.session['loggeduser'] = check.name
-                request.session['loginid'] = loginid
-                request.session['email'] = check.email
+            print(f"Login Attempt: ID={loginid}, Pswd={pswd}")
+            
+            try:
+                check = UserRegistrationModel.objects.get(loginid=loginid, password=pswd)
+                status = check.status
+                print(f"User Found: {check.name}, Status: {status}")
                 
+                if status == "activated":
+                    request.session['id'] = check.id
+                    request.session['loggeduser'] = check.name
+                    request.session['loginid'] = loginid
+                    request.session['email'] = check.email
+                    
+                    if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
+                        return JsonResponse({
+                            'status': 'success',
+                            'user_id': check.id,
+                            'name': check.name,
+                            'email': check.email
+                        })
+                    return render(request, 'users/UserHomePage.html', {})
+                else:
+                    msg = 'Your account is not yet activated.'
+                    if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
+                        return JsonResponse({'status': 'error', 'message': msg}, status=403)
+                    messages.success(request, msg)
+                    return render(request, 'UserLogin.html')
+            
+            except UserRegistrationModel.DoesNotExist:
+                msg = 'Invalid Login ID or Password'
                 if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                    return JsonResponse({
-                        'status': 'success',
-                        'user_id': check.id,
-                        'name': check.name,
-                        'email': check.email
-                    })
-                return render(request, 'users/UserHomePage.html', {})
-            else:
-                if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                    return JsonResponse({'status': 'error', 'message': 'Your Account Not at activated'}, status=403)
-                messages.success(request, 'Your Account Not at activated')
+                    return JsonResponse({'status': 'error', 'message': msg}, status=401)
+                messages.error(request, msg)
                 return render(request, 'UserLogin.html')
+
         except Exception as e:
-            print('Exception is ', str(e))
+            error_msg = f"INTERNAL ERROR: {str(e)}"
+            print(error_msg)
             if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                return JsonResponse({'status': 'error', 'message': 'Invalid Login id and password'}, status=401)
-            pass
-        messages.success(request, 'Invalid Login id and password')
+                return JsonResponse({'status': 'error', 'message': error_msg}, status=500)
+            messages.error(request, error_msg)
+            return render(request, 'UserLogin.html', {})
+            
     return render(request, 'UserLogin.html', {})
 
 

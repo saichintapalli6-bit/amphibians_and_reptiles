@@ -2,15 +2,13 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 // ─── BASE URL ────────────────────────────────────────────────────────────────
-// Web browser (PC)  → localhost:8000
-// Mobile (Expo Go, Wi-Fi) → PC's Wi-Fi IP:8000  (same router required)
+// Now our backend is live on Render! 🚀
 // ─────────────────────────────────────────────────────────────────────────────
-const PC_WIFI_IP = '192.168.31.216';   // ← PC's current Wi-Fi IP
+const LOCAL_DEV_URL = 'http://192.168.31.216:8000';
+const RENDER_URL    = 'https://amphibians-and-reptiles.onrender.com';
 
-export const BASE_URL =
-  Platform.OS === 'web'
-    ? 'http://localhost:8000'
-    : `http://${PC_WIFI_IP}:8000`;
+// ── Choose RENDER_URL for production (Render) 🚀 ──
+export const BASE_URL = RENDER_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,

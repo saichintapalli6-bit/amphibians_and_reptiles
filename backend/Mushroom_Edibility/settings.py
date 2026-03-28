@@ -88,10 +88,16 @@ WSGI_APPLICATION = 'Mushroom_Edibility.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Database
+# Using Supabase PostgreSQL for persistent cloud storage
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME':     'postgres',
+        'USER':     'postgres',
+        'PASSWORD': 'Mlleswari@12',
+        'HOST':     'db.jtqqutxvaqddsngjgjbg.supabase.co',
+        'PORT':     '5432',
     }
 }
 

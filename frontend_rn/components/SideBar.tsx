@@ -37,7 +37,7 @@ export default function SideBar() {
   const brandColor = isAdmin ? '#d97706' : '#6c63ff';
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const slideAnim = useRef(new Animated.Value(-240)).current;
+  const slideAnim = useRef(new Animated.Value(240)).current; // Start hidden on the right
   const fadeAnim  = useRef(new Animated.Value(0)).current;
 
   const openMenu = () => {
@@ -50,7 +50,7 @@ export default function SideBar() {
 
   const closeMenu = () => {
     Animated.parallel([
-      Animated.timing(slideAnim, { toValue: -240, duration: 200, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 240, duration: 200, useNativeDriver: true }),
       Animated.timing(fadeAnim,  { toValue: 0,    duration: 200, useNativeDriver: true }),
     ]).start(() => setMenuOpen(false));
   };
@@ -92,12 +92,14 @@ export default function SideBar() {
     <>
       {/* Top mini-bar */}
       <View style={styles.mobileBar}>
-        <Text style={styles.mobileBrand}>🦎 <Text style={[styles.brandAccent, { color: brandColor }]}>Reptile AI</Text></Text>
-        <TouchableOpacity onPress={openMenu} style={styles.hamburger} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <View style={styles.hamLine} />
-          <View style={[styles.hamLine, { width: 18 }]} />
-          <View style={styles.hamLine} />
-        </TouchableOpacity>
+        <View style={styles.mobileRightHeader}>
+          <Text style={styles.mobileBrand}>🦎 <Text style={[styles.brandAccent, { color: brandColor }]}>Reptile AI</Text></Text>
+          <TouchableOpacity onPress={openMenu} style={styles.hamburger} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <View style={styles.hamLine} />
+            <View style={[styles.hamLine, { width: 18 }]} />
+            <View style={styles.hamLine} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Drawer overlay */}
@@ -126,7 +128,7 @@ export default function SideBar() {
                   key={item.label}
                   style={[
                     styles.drawerItem,
-                    active && { backgroundColor: item.bg, borderLeftColor: item.color, borderLeftWidth: 4 },
+                    active && { backgroundColor: item.bg, borderRightColor: item.color, borderRightWidth: 4 },
                   ]}
                   onPress={() => navigate(item)}
                   activeOpacity={0.75}
@@ -166,14 +168,19 @@ const styles = StyleSheet.create({
 
   /* Mobile topbar */
   mobileBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    width: '100%',
     paddingVertical: 12, paddingHorizontal: 18,
     backgroundColor: '#fff',
     borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
     elevation: 4, zIndex: 100,
+    alignItems: 'flex-end',
+  },
+  mobileRightHeader: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
   mobileBrand: { fontSize: 16, fontWeight: '800', color: '#111827' },
-  hamburger:   { padding: 4, gap: 5, justifyContent: 'center' },
+  hamburger:   { padding: 4, gap: 5, justifyContent: 'center', alignItems: 'flex-end' },
   hamLine:     { height: 2.5, width: 24, backgroundColor: '#374151', borderRadius: 2 },
 
   /* Drawer */
@@ -183,11 +190,11 @@ const styles = StyleSheet.create({
     zIndex: 200,
   },
   drawer: {
-    position: 'absolute', left: 0, top: 0, bottom: 0,
+    position: 'absolute', right: 0, top: 0, bottom: 0,
     width: 240, backgroundColor: '#fff',
     paddingTop: Platform.OS === 'ios' ? 50 : 30,
     zIndex: 300,
-    shadowColor: '#000', shadowOffset: { width: 4, height: 0 },
+    shadowColor: '#000', shadowOffset: { width: -4, height: 0 },
     shadowOpacity: 0.15, shadowRadius: 16, elevation: 20,
   },
   drawerHeader: {
@@ -201,7 +208,7 @@ const styles = StyleSheet.create({
   drawerItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 16, paddingHorizontal: 20,
-    borderLeftWidth: 4, borderLeftColor: 'transparent',
+    borderRightWidth: 4, borderRightColor: 'transparent',
     borderBottomWidth: 1, borderBottomColor: '#f9fafb',
   },
   drawerItemText: { fontSize: 15, fontWeight: '700' },
