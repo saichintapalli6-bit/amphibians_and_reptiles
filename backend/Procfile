@@ -1,0 +1,1 @@
+web: gunicorn Mushroom_Edibility.wsgi:application
