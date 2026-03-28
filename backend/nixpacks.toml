@@ -1,0 +1,8 @@
+[providers]
+python = { version = "3.10" }
+
+[phases.install]
+cmds = ["python -m venv /app/.venv", "source /app/.venv/bin/activate && pip install --upgrade pip setuptools wheel", "source /app/.venv/bin/activate && pip install -r requirements.txt"]
+
+[start]
+cmd = "gunicorn Mushroom_Edibility.wsgi:application"
