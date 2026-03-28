@@ -354,9 +354,11 @@ def prediction(request):
     if request.method == 'POST' and request.FILES.get('image'):
         try:
             model_path = os.path.join(settings.BASE_DIR, 'animal_classification_model.h5')
+            print(f"DEBUG: Starting prediction. Model path: {model_path}")
 
             if not os.path.exists(model_path):
-                msg = "Model file not found. Please train first."
+                msg = f"Model file not found at {model_path}. Please train first."
+                print(f"ERROR: {msg}")
                 if 'application/json' in request.headers.get('Accept', ''):
                     return JsonResponse({'status': 'error', 'message': msg}, status=400)
                 return render(request, 'users/detection.html', {'result': msg})
@@ -365,20 +367,16 @@ def prediction(request):
             img_path = default_storage.save('temp_image.jpg', img_file)
             img_full_path = os.path.join(settings.MEDIA_ROOT, img_path)
             image_url = os.path.join(settings.MEDIA_URL, img_path)
+            print(f"DEBUG: Image saved at {img_full_path}")
 
-            # ── STEP 1: Pre-filter with ImageNet MobileNetV2 ──────────────────
-            if not is_reptile_or_amphibian_imagenet(img_full_path):
-                msg = 'Invalid Image: This is not a Reptile or Amphibian.'
-                if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
-                    return JsonResponse({
-                        'status': 'error', 'message': msg, 'is_invalid': True,
-                        'image_url': request.build_absolute_uri(image_url)
-                    })
-                return render(request, 'users/detection.html', {'is_invalid': True, 'image_url': image_url})
+            # ── STEP 1: Pre-filter (DISABLED for memory optimization on Render) ──
+            # if not is_reptile_or_amphibian_imagenet(img_full_path):
+            #     msg = 'Invalid Image: This is not a Reptile or Amphibian.'
+            #     ...
 
-            # ── STEP 2: Species classification with the custom model ───────────
-            # Caching the model to avoid OOM / Timeouts on every request
+            # ── STEP 2: Species classification ──────────────────────────────────
             if not hasattr(prediction, '_model'):
+                print("DEBUG: Loading custom model into memory...")
                 from tensorflow.keras.layers import DepthwiseConv2D
                 class FixedDepthwiseConv2D(DepthwiseConv2D):
                     def __init__(self, **kwargs):
@@ -389,6 +387,8 @@ def prediction(request):
                     model_path, compile=False,
                     custom_objects={'DepthwiseConv2D': FixedDepthwiseConv2D}
                 )
+                print("DEBUG: Model loaded successfully.")
+            
             model = prediction._model
 
             # Image Preprocessing
@@ -398,9 +398,11 @@ def prediction(request):
             img_array = preprocess_input(img_array)
 
             # Prediction
+            print("DEBUG: Running model.predict...")
             preds = model.predict(img_array, verbose=0)
             idx = np.argmax(preds, axis=1)[0]
             confidence = float(preds[0][idx])
+            print(f"DEBUG: Predicted index: {idx}, Confidence: {confidence}")
             
             # Map index to class name
             if idx < len(CLASS_NAMES):
@@ -409,9 +411,10 @@ def prediction(request):
                 predicted_class_name = "Unknown"
 
             category = get_category(predicted_class_name)
+            print(f"DEBUG: Species: {predicted_class_name}, Category: {category}")
 
             if category == 'Unknown':
-                msg = 'Invalid species: Category is Unknown.'
+                msg = 'Invalid species detected: Category is Unknown.'
                 if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
                     return JsonResponse({
                         'status': 'error', 'message': msg, 'is_invalid': True,
@@ -440,7 +443,9 @@ def prediction(request):
 
         except Exception as e:
             msg = f"Prediction Error: {str(e)}"
-            print(f"ERROR: {msg}") # Will show in Django terminal
+            print(f"ERROR: {msg}") 
+            import traceback
+            traceback.print_exc()
             if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
                 return JsonResponse({'status': 'error', 'message': msg}, status=500)
             return render(request, 'users/detection.html', {'result': msg})
