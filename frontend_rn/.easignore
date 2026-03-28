@@ -1,22 +1,28 @@
 # EAS Build ignore
-# This ensures only the necessary source code is uploaded to the cloud
-# reducing upload time and avoiding build errors
+# Because this project is in a monorepo workspace, paths are evaluated from the repo root!
+**/node_modules/
+**/.expo/
+**/dist/
+**/web-build/
+**/*.jks
+**/*.p8
+**/*.p12
+**/*.key
+**/*.mobileprovision
+**/*.orig.*
+**/.kotlin/
+**/ios/
+**/android/
 
-node_modules/
-.expo/
-dist/
-web-build/
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig.*
-.kotlin/
-ios/
-android/
-
-# Ignore backend if it's accidentally in the same repo upload
+# Ignore ALL root-level backend and frontend folders completely
 backend/
-.git/
+frontend/
 .venv/
+.git/
+src/
+assets/
+db.sqlite3
+*.h5
+*.data-*
+*.index
+checkpoint
