@@ -1,0 +1,28 @@
+# EAS Ignore
+# Paths here fall back to the workspace root when run from frontend_rn
+
+# Hide the backend folder completely (this is where the 130MB dataset and ML models live)
+backend/
+src/
+
+# Hide Node modules everywhere
+**/node_modules/
+node_modules/
+frontend_rn/node_modules/
+frontend_rn/dist/
+frontend_rn/.expo/
+
+# Standard React Native ignores
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+.kotlin/
+ios/
+android/
+.venv/
