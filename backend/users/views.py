@@ -378,10 +378,16 @@ def prediction(request):
             image_url = os.path.join(settings.MEDIA_URL, img_path)
             print(f"DEBUG: Image saved at {img_full_path}")
 
-            # ── STEP 1: Pre-filter (DISABLED for memory optimization on Render) ──
-            # if not is_reptile_or_amphibian_imagenet(img_full_path):
-            #     msg = 'Invalid Image: This is not a Reptile or Amphibian.'
-            #     ...
+            # ── STEP 1: Pre-filter (Validates if it's really a Reptile/Amphibian) ──
+            if not is_reptile_or_amphibian_imagenet(img_full_path):
+                msg = 'Invalid Image: This is not a Reptile or Amphibian.'
+                print(f"REJECTED: {msg}")
+                if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
+                    return JsonResponse({
+                        'status': 'error', 'message': msg, 'is_invalid': True,
+                        'image_url': request.build_absolute_uri(image_url)
+                    })
+                return render(request, 'users/detection.html', {'is_invalid': True, 'image_url': image_url})
 
             # ── STEP 2: Species classification ──────────────────────────────────
             if not hasattr(prediction, '_model'):
@@ -413,6 +419,17 @@ def prediction(request):
             confidence = float(preds[0][idx])
             print(f"DEBUG: Predicted index: {idx}, Confidence: {confidence}")
             
+            # ── STEP 3: Confidence threshold check ──────────────────────────────
+            # If the model is less than 60% sure, reject it as invalid/unknown
+            if confidence < 0.60:
+                msg = 'Inconclusive prediction: Accuracy too low. Please provide a clearer image.'
+                if 'application/json' in request.headers.get('Accept', '') or request.content_type == 'application/json':
+                    return JsonResponse({
+                        'status': 'error', 'message': msg, 'is_invalid': True,
+                        'image_url': request.build_absolute_uri(image_url)
+                    })
+                return render(request, 'users/detection.html', {'is_invalid': True, 'image_url': image_url})
+
             # Map index to class name
             if idx < len(CLASS_NAMES):
                 predicted_class_name = CLASS_NAMES[idx]
