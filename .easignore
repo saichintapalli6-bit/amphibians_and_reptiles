@@ -1,0 +1,26 @@
+# Strict Root Ignore - ONLY include frontend_rn
+/backend/
+/frontend/
+/node_modules/
+/.venv/
+/.git/
+/src/
+/assets/
+
+# Root package files (not needed for frontend_rn build)
+/package.json
+/package-lock.json
+/App.js
+/requirements.txt
+/runtime.txt
+/Procfile
+/db.sqlite3
+/animal_classification_model.h5
+/*.data-*
+/*.index
+/checkpoint
+
+# Local build artifacts
+/dist/
+/web-build/
+/.expo/
