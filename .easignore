@@ -1,26 +1,22 @@
-# Strict Root Ignore - ONLY include frontend_rn
-/backend/
-/frontend/
-/node_modules/
-/.venv/
-/.git/
-/src/
-/assets/
+# Strict Root Ignore
+# This specifically stops the internal project modules from being uploaded
+frontend_rn/node_modules/
 
-# Root package files (not needed for frontend_rn build)
-/package.json
-/package-lock.json
-/App.js
-/requirements.txt
-/runtime.txt
-/Procfile
-/db.sqlite3
-/animal_classification_model.h5
-/*.data-*
-/*.index
-/checkpoint
+# Ignore backend and other root folders
+backend/
+frontend/
+node_modules/
+.venv/
+.git/
+src/
+assets/
 
-# Local build artifacts
-/dist/
-/web-build/
-/.expo/
+# Root package files
+package.json
+package-lock.json
+App.js
+db.sqlite3
+animal_classification_model.h5
+*.data-*
+*.index
+checkpoint
