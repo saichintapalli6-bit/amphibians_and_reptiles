@@ -2,12 +2,12 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 // ─── BASE URL ────────────────────────────────────────────────────────────────
-// Now our backend is live on Render! 🚀
+// Now our backend is live on Railway! 🚀
 // ─────────────────────────────────────────────────────────────────────────────
-const RENDER_URL = 'https://amphibians-and-reptiles.onrender.com';
+const RAILWAY_URL = 'https://daring-vibrancy-production-6c17.up.railway.app';
 
-// ── Choose RENDER_URL to communicate with live production backend 🚀 ──
-export const BASE_URL = RENDER_URL;
+// ── Choose RAILWAY_URL to communicate with live production backend 🚀 ──
+export const BASE_URL = RAILWAY_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
