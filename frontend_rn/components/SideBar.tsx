@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Animated, Platform, useWindowDimensions, Modal, Pressable,
+  Animated, Platform, useWindowDimensions, Modal, Pressable, Image,
 } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 
@@ -67,7 +67,10 @@ export default function SideBar() {
   if (isDesktop) {
     return (
       <View style={styles.desktopBar}>
-        <Text style={styles.brand}>🦎 <Text style={[styles.brandAccent, { color: brandColor }]}>Reptile AI</Text></Text>
+        <View style={styles.brandBox}>
+          <Image source={require('../assets/images/app_logo.png')} style={styles.logoImg} />
+          <Text style={styles.brand}><Text style={[styles.brandAccent, { color: brandColor }]}>Reptile AI</Text></Text>
+        </View>
         <View style={styles.desktopLinks}>
           {navItems.map((item) => {
             const active = pathname === item.path;
@@ -93,7 +96,10 @@ export default function SideBar() {
       {/* Top mini-bar */}
       <View style={styles.mobileBar}>
         <View style={styles.mobileRightHeader}>
-          <Text style={styles.mobileBrand}>🦎 <Text style={[styles.brandAccent, { color: brandColor }]}>Reptile AI</Text></Text>
+          <View style={styles.brandBoxMobile}>
+            <Image source={require('../assets/images/app_logo.png')} style={styles.logoImgMobile} />
+            <Text style={styles.mobileBrand}><Text style={[styles.brandAccent, { color: brandColor }]}>Reptile AI</Text></Text>
+          </View>
           <TouchableOpacity onPress={openMenu} style={styles.hamburger} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <View style={styles.hamLine} />
             <View style={[styles.hamLine, { width: 18 }]} />
@@ -114,7 +120,10 @@ export default function SideBar() {
           <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
             {/* Drawer header */}
             <View style={styles.drawerHeader}>
-              <Text style={styles.drawerTitle}>🦎 Menu</Text>
+              <View style={styles.drawerTitleBox}>
+                <Image source={require('../assets/images/app_logo.png')} style={styles.logoImgDrawer} />
+                <Text style={styles.drawerTitle}>Menu</Text>
+              </View>
               <TouchableOpacity onPress={closeMenu} style={styles.closeBtn}>
                 <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
@@ -157,8 +166,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06, shadowRadius: 8, elevation: 4, zIndex: 100,
   },
-  brand:       { fontSize: 16, fontWeight: '800', color: '#111827', marginRight: 20, flexShrink: 0 },
+  brand:       { fontSize: 16, fontWeight: '800', color: '#111827', flexShrink: 0 },
   brandAccent: { },
+  brandBox:     { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
+  logoImg:      { width: 34, height: 34, borderRadius: 8, marginRight: 8 },
   desktopLinks: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' as any },
   desktopBtn: {
     paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20,
@@ -179,9 +190,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 4,
   },
+  brandBoxMobile:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  logoImgMobile:    { width: 30, height: 30, borderRadius: 6 },
   mobileBrand: { fontSize: 16, fontWeight: '800', color: '#111827' },
   hamburger:   { padding: 4, gap: 5, justifyContent: 'center', alignItems: 'flex-end' },
   hamLine:     { height: 2.5, width: 24, backgroundColor: '#374151', borderRadius: 2 },
+  
+  drawerTitleBox:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  logoImgDrawer:    { width: 28, height: 28, borderRadius: 6 },
 
   /* Drawer */
   backdrop: {

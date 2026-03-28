@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, useWindowDimensions, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function IndexScreen() {
@@ -42,7 +42,9 @@ export default function IndexScreen() {
       ]}>
         <View style={styles.topBar} />
 
-        <Animated.Text style={[styles.logo, { transform: [{ translateY: float }] }]}>🦎</Animated.Text>
+        <Animated.View style={{ transform: [{ translateY: float }] }}>
+          <Image source={require('../assets/images/app_logo.png')} style={styles.homeLogo} />
+        </Animated.View>
         <Text style={styles.title}>Reptile & Amphibian{'\n'}Classification</Text>
         <Text style={styles.sub}>AI-powered species identification using deep learning</Text>
 
@@ -81,7 +83,7 @@ const styles = StyleSheet.create({
   },
   cardDesktop: { maxWidth: 720, padding: 56 },
   topBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 5, backgroundColor: '#6c63ff' },
-  logo:   { fontSize: 72, marginBottom: 18, marginTop: 8 },
+  homeLogo: { width: 100, height: 100, borderRadius: 24, marginBottom: 18, marginTop: 8 },
   title:  { fontSize: 30, fontWeight: '800', color: '#1e1b4b', textAlign: 'center', lineHeight: 42, marginBottom: 12 },
   sub:    { fontSize: 15, color: '#6b7280', textAlign: 'center', lineHeight: 24, marginBottom: 24 },
   badges: { flexDirection: 'row', gap: 10, marginBottom: 28, flexWrap: 'wrap' as any, justifyContent: 'center' },

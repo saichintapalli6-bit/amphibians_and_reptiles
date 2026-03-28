@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 
 const menuItems = [
@@ -23,7 +23,10 @@ export default function AdminHomeScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>🛡️  Admin Dashboard</Text>
+        <View style={styles.adminHeaderBrand}>
+          <Image source={require('../assets/images/app_logo.png')} style={styles.adminLogo} />
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
+        </View>
         <Text style={styles.headerSub}>Reptile & Amphibian Classification System</Text>
       </View>
 
@@ -77,7 +80,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(233,69,96,0.3)',
   },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 4 },
+  adminHeaderBrand: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
+  adminLogo:        { width: 44, height: 44, borderRadius: 10 },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#fff' },
   headerSub:   { fontSize: 13, color: 'rgba(255,255,255,0.45)' },
   body: { padding: 20 },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 28 },

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Animated, Platform, useWindowDimensions,
+  ScrollView, Animated, Platform, useWindowDimensions, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
@@ -42,7 +42,7 @@ export default function UserHomeScreen() {
         <Animated.View style={{ opacity: fade, transform: [{ translateY: slideY }] }}>
           {/* Welcome header */}
           <View style={styles.welcome}>
-            <Text style={styles.welcomeEmoji}>👋</Text>
+            <Image source={require('../assets/images/app_logo.png')} style={styles.dashboardLogo} />
             <Text style={styles.welcomeTitle}>
               Welcome{name ? `, ${name}` : ''}!
             </Text>
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, padding: 20, maxWidth: 700, width: '100%', alignSelf: 'center' as any },
 
   welcome: { alignItems: 'center', paddingVertical: 32 },
-  welcomeEmoji: { fontSize: 52, marginBottom: 12 },
+  dashboardLogo: { width: 90, height: 90, borderRadius: 20, marginBottom: 16 },
   welcomeTitle: { fontSize: 28, fontWeight: '800', color: '#fff', textAlign: 'center', marginBottom: 8 },
   welcomeSub:   { fontSize: 14, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
 
