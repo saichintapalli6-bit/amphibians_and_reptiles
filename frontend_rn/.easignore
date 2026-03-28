@@ -1,0 +1,22 @@
+# EAS Build ignore
+# This ensures only the necessary source code is uploaded to the cloud
+# reducing upload time and avoiding build errors
+
+node_modules/
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+.kotlin/
+ios/
+android/
+
+# Ignore backend if it's accidentally in the same repo upload
+backend/
+.git/
+.venv/
